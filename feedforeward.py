@@ -8,20 +8,21 @@ from torch.utils.data import DataLoader, random_split
 class SimpleNN(nn.Module):
     def __init__(self):
         super(SimpleNN, self).__init__()
-        # Define a simple feedforward network with one hidden layer
-        # The input layer has 784 nodes (28x28 pixels), hidden layer has 128 nodes, and output layer has 10 (for 10 classes)
-        self.fc1 = nn.Linear(784, 128)
-        self.fc2 = nn.Linear(128, 10)
+        # Define a feedforward network with two hidden layers
+        self.fc1 = nn.Linear(784, 128) # First hidden layer
+        self.fc2 = nn.Linear(128, 64)  # New second hidden layer
+        self.fc3 = nn.Linear(64, 10)   # Output layer
 
     def forward(self, x):
-        # Flatten the image tensor, 2D matrix to 1D vector
+        # Flatten the image tensor
         x = x.view(-1, 28 * 28)
         # Apply the first fully connected layer with ReLU activation function
         x = torch.relu(self.fc1(x))
+        # Apply the second fully connected layer with ReLU activation function
+        x = torch.relu(self.fc2(x))
         # Output layer with logits, no activation function
-        x = self.fc2(x)
+        x = self.fc3(x)
         return x
-
 
 
 # Load MNIST dataset
