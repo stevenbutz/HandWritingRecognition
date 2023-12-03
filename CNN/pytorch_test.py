@@ -154,6 +154,8 @@ dataiter = iter(test_digit_dataloader)
 images, labels = next(dataiter)
 # since we're not training, we don't need to calculate the gradients for our outputs
 def check_accuracy():
+    correct_pred = {str(i): 0 for i in range(10)}
+    total_pred = {str(i): 0 for i in range(10)}
     correct = 0
     total = 0
     with torch.no_grad():
@@ -163,11 +165,19 @@ def check_accuracy():
             outputs = net(images)
             # the class with the highest energy is what we choose as prediction
             _, predicted = torch.max(outputs.data, 1)
+            for label, prediction in zip(labels, predicted):
+                if label == prediction:
+                    correct_pred[str(label.item())] += 1
+                total_pred[str(label.item())] += 1
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
+    for classname, correct_count in correct_pred.items():
+        accuracy = 100 * float(correct_count) / total_pred[classname]
+        print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-#check_accuracy()
+check_accuracy()
 def known_digit_classification_demo():
     figure = plt.figure(figsize=(8, 8))
     cols, rows = 3, 1
