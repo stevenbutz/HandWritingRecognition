@@ -4,15 +4,14 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 
-
 # Define the neural network class
 class SimpleNN(nn.Module):
     def __init__(self):
         super(SimpleNN, self).__init__()
         # Define a feedforward network with two hidden layers
-        self.fc1 = nn.Linear(784, 128) # First hidden layer
-        self.fc2 = nn.Linear(128, 64)  # New second hidden layer
-        self.fc3 = nn.Linear(64, 10)   # Output layer
+        self.fc1 = nn.Linear(784, 128)  # First hidden layer
+        self.fc2 = nn.Linear(128, 64)   # Second hidden layer
+        self.fc3 = nn.Linear(64, 10)    # Output layer
 
     def forward(self, x):
         # Flatten the image tensor
@@ -24,7 +23,6 @@ class SimpleNN(nn.Module):
         # Output layer with logits, no activation function
         x = self.fc3(x)
         return x
-
 
 # Load MNIST dataset
 transform = transforms.ToTensor()
@@ -41,15 +39,13 @@ train_dataset, test_dataset = random_split(full_dataset, [train_size, test_size]
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
-
-
 # Initialize the neural network, loss function, and optimizer
 model = SimpleNN()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
 # Training loop
-for epoch in range(3):  # Enter number for how many epoch 
+for epoch in range(3):  # Enter number for how many epochs
     for batch_idx, (data, target) in enumerate(train_loader):
         # Forward pass
         output = model(data)
@@ -62,32 +58,51 @@ for epoch in range(3):  # Enter number for how many epoch
 
         print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
 
-#Test the model 
-
+# Test the model 
 model.eval()
 
-# Initialize arrays to store correct predictions and total instances for each class
+# Initialize arrays to store predictions
 correct_pred = {classname: 0 for classname in range(10)}
 total_pred = {classname: 0 for classname in range(10)}
+true_positives = {classname: 0 for classname in range(10)}
+false_positives = {classname: 0 for classname in range(10)}
+false_negatives = {classname: 0 for classname in range(10)}
 
 # Test the model
-model.eval()
 with torch.no_grad():
     for data, target in test_loader:
         output = model(data)
         _, predictions = torch.max(output, 1)
         for label, prediction in zip(target, predictions):
+            total_pred[label.item()] += 1  # Update total predictions for each class
             if label == prediction:
                 correct_pred[label.item()] += 1
-            total_pred[label.item()] += 1
+                true_positives[label.item()] += 1
+            else:
+                false_positives[prediction.item()] += 1
+                false_negatives[label.item()] += 1
 
 # Overall accuracy
 total_correct = sum(correct_pred.values())
 total = sum(total_pred.values())
 overall_accuracy = 100 * total_correct / total
-print(f'Overall Accuracy of the network on the test images: {overall_accuracy:.2f}%')
 
-# Accuracy for each class
-for classname, correct_count in correct_pred.items():
-    accuracy = 100 * float(correct_count) / total_pred[classname]
-    print(f'Accuracy for class {classname}: {accuracy:.2f}%')
+# Calculate and print overall accuracy, precision, recall, and F1 score for each class
+for classname in range(10):
+    # Calculating metrics for each class
+    class_precision = true_positives[classname] / max((true_positives[classname] + false_positives[classname]), 1)
+    class_recall = true_positives[classname] / max((true_positives[classname] + false_negatives[classname]), 1)
+    class_f1 = 2 * (class_precision * class_recall) / max((class_precision + class_recall), 1)
+
+    # Calculating and printing class-wise accuracy
+    class_accuracy = 100 * correct_pred[classname] / total_pred[classname]
+    print(f'Accuracy for class: {classname}     is {class_accuracy:.1f} %')
+
+    # Printing precision, recall, and F1 score for each class, multiplied by 100 for percentage
+    print(f'Precision for class: {classname}     is {class_precision * 100:.1f} %')
+    print(f'Recall for class: {classname}     is {class_recall * 100:.1f} %')
+    print(f'F1 for class: {classname}     is {class_f1 * 100:.1f} %')
+    print()  # Adds a blank line for readability
+
+# Print overall accuracy
+print(f'Overall Accuracy of the network on the test images: {overall_accuracy:.1f}%')
