@@ -65,21 +65,28 @@ for epoch in range(3):  # Enter number for how many epoch
 
 model.eval()
 
-correct = 0
-total = 0
+# Initialize arrays to store correct predictions and total instances for each class
+correct_pred = {classname: 0 for classname in range(10)}
+total_pred = {classname: 0 for classname in range(10)}
 
-# Disabling gradient calculation
+# Test the model
+model.eval()
 with torch.no_grad():
     for data, target in test_loader:
-        # Forward pass
         output = model(data)
+        _, predictions = torch.max(output, 1)
+        for label, prediction in zip(target, predictions):
+            if label == prediction:
+                correct_pred[label.item()] += 1
+            total_pred[label.item()] += 1
 
-        # Get the index of the max log-probability
-        _, predicted = torch.max(output.data, 1)
-        total += target.size(0)
-        correct += (predicted == target).sum().item()
+# Overall accuracy
+total_correct = sum(correct_pred.values())
+total = sum(total_pred.values())
+overall_accuracy = 100 * total_correct / total
+print(f'Overall Accuracy of the network on the test images: {overall_accuracy:.2f}%')
 
-# Calculate and print the accuracy
-accuracy = 100 * correct / total
-print(f'Accuracy of the network on the test images: {accuracy:.2f}%')
-
+# Accuracy for each class
+for classname, correct_count in correct_pred.items():
+    accuracy = 100 * float(correct_count) / total_pred[classname]
+    print(f'Accuracy for class {classname}: {accuracy:.2f}%')
