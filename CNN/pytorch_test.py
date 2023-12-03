@@ -154,7 +154,10 @@ dataiter = iter(test_digit_dataloader)
 images, labels = next(dataiter)
 # since we're not training, we don't need to calculate the gradients for our outputs
 def check_accuracy():
-    correct_pred = {str(i): 0 for i in range(10)}
+    TP = {str(i): 0 for i in range(10)}
+    FP = {str(i): 0 for i in range(10)}
+    TN= {str(i): 0 for i in range(10)}
+    FN = {str(i): 0 for i in range(10)}
     total_pred = {str(i): 0 for i in range(10)}
     correct = 0
     total = 0
@@ -167,14 +170,30 @@ def check_accuracy():
             _, predicted = torch.max(outputs.data, 1)
             for label, prediction in zip(labels, predicted):
                 if label == prediction:
-                    correct_pred[str(label.item())] += 1
+                    TP[str(label.item())] += 1
+                    for k, v in TN.items():
+                        if label != prediction:
+                            TN[k] += 1
+                else:
+                    FP[str(prediction.item())] +=1
+                    for k, v in FN.items():
+                        if label != prediction:
+                            FN[k] += 1
+
                 total_pred[str(label.item())] += 1
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    for classname, correct_count in correct_pred.items():
+    for classname, correct_count in TP.items():
+        precision = 100 * float(TP[classname]) / (TP[classname] + FP[classname])
         accuracy = 100 * float(correct_count) / total_pred[classname]
+        recall = 100 * float(TP[classname]) / (TP[classname] + FN[classname])
+        f1 = 2 * (accuracy * recall) / (accuracy + recall)
         print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+        print(f'Precision for class: {classname:5s} is {precision:.1f} %')
+        print(f'Recall for class: {classname:5s} is {recall:.1f} %')
+        print(f'F1 for class: {classname:5s} is {f1:.1f} %')
+        print()
 
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
 check_accuracy()
