@@ -3,7 +3,12 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
+import os
 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+#PATH = '/home/dan/digits_net.pth'
+MODEL_PATH = os.path.join(script_dir, 'digits_ff_model.pth')
 # Define the neural network class
 class SimpleNN(nn.Module):
     def __init__(self):
@@ -44,21 +49,24 @@ model = SimpleNN()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-# Training loop
-for epoch in range(3):  # Enter number for how many epochs
-    for batch_idx, (data, target) in enumerate(train_loader):
-        # Forward pass
-        output = model(data)
-        loss = criterion(output, target)
+def train():
+    # Training loop
+    for epoch in range(3):  # Enter number for how many epochs
+        for batch_idx, (data, target) in enumerate(train_loader):
+            # Forward pass
+            output = model(data)
+            loss = criterion(output, target)
 
-        # Backward pass and optimization
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            # Backward pass and optimization
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
-
+            print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
+    torch.save(model.state_dict(), MODEL_PATH)
 # Test the model 
+#train()
+model.load_state_dict(torch.load(MODEL_PATH))
 model.eval()
 
 # Initialize arrays to store predictions

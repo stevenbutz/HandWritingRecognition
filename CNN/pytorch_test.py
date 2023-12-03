@@ -196,7 +196,7 @@ def check_accuracy():
         print()
 
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-check_accuracy()
+#check_accuracy()
 def known_digit_classification_demo():
     figure = plt.figure(figsize=(8, 8))
     cols, rows = 3, 1

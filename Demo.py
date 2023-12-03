@@ -6,6 +6,7 @@ from CNN import pytorch_test
 from torchvision import transforms
 import torch
 import os.path
+import feedforeward
 
 
 TEST_IMAGE_PATH = os.path.join(pytorch_test.script_dir, 'test_Image.png')
@@ -21,13 +22,17 @@ draw = ImageDraw.Draw(image1)
 def classify_digit():
     image1.save(TEST_IMAGE_PATH)
     image_tensor = transforms.functional.pil_to_tensor(image1).float()
-    output = pytorch_test.net(image_tensor.unsqueeze(1))
-    test=torch.softmax(output, 1, float)
+    cnn_output = pytorch_test.net(image_tensor.unsqueeze(1))
+    ff_output = feedforeward.model(image_tensor.unsqueeze(1))
+    test=torch.softmax(cnn_output, 1, float)
+    test=torch.softmax(cnn_output, 1, float)
     #test=torch.log_softmax(output)
     print(test)
-    print(output)
-    _, predicted = torch.max(output, 1)
-    Predicted_StringVar.set(f"Predicted: {predicted.item()}")
+    print(cnn_output)
+    _, cnn_predicted = torch.max(cnn_output, 1)
+    _, ff_predicted = torch.max(ff_output, 1)
+    Predicted_StringVar.set(f"Predicted: {cnn_predicted.item()}")
+    ff_Predicted_StringVar.set(f"Predicted: {ff_predicted.item()}")
     Percentages_Text.configure(state=NORMAL)
     Percentages_Text.delete(1.0, END)
     output_String="\n".join(f"Digit {x}: {round(test[0][x].item(), 3)}" for x in range(10)) 
@@ -57,6 +62,14 @@ Clear_Canvas_Button.grid(column=1, row=1, sticky=(N,W,E,S))
 
 root.grid_columnconfigure(0, weight=1)
 root.grid_rowconfigure(0, weight=1)
+
+ff_Predicted_StringVar = tk.StringVar(value="Predicted: Default")
+ff_Predicted_Label = ttk.Label(Feed_Forward_Frame,textvariable=ff_Predicted_StringVar, font=("Arial", 25))
+#Percentages_Text_StringVar = tk.StringVar(value="Default")
+ff_Percentages_Text = tk.Text(Feed_Forward_Frame, state="disabled")
+#Percentages_Text = tk.Text(CNN_Frame)
+ff_Predicted_Label.grid(column=0, row=0, sticky=(N,W,E,S))
+ff_Percentages_Text.grid(column=1, row=0, sticky=(N,W,E,S))
 
 Predicted_StringVar = tk.StringVar(value="Predicted: Default")
 Predicted_Label = ttk.Label(CNN_Frame,textvariable=Predicted_StringVar, font=("Arial", 25))
