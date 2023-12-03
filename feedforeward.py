@@ -110,7 +110,7 @@ for classname in range(10):
     print(f'Precision for class: {classname}     is {class_precision * 100:.1f} %')
     print(f'Recall for class: {classname}     is {class_recall * 100:.1f} %')
     print(f'F1 for class: {classname}     is {class_f1 * 100:.1f} %')
-    print()  # Adds a blank line for readability
+    print()
 
 # Print overall accuracy
 print(f'Overall Accuracy of the network on the test images: {overall_accuracy:.1f}%')
