@@ -2,10 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import *
 from PIL import Image, ImageDraw
-import pytorch_test
+from CNN import pytorch_test
 from torchvision import transforms
 import torch
 import os.path
+
 
 TEST_IMAGE_PATH = os.path.join(pytorch_test.script_dir, 'test_Image.png')
 root = Tk()

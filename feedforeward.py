@@ -4,6 +4,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 
+
 # Define the neural network class
 class SimpleNN(nn.Module):
     def __init__(self):
