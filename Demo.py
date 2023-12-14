@@ -33,11 +33,7 @@ def classify_digit():
     _, ff_predicted = torch.max(ff_output, 1)
     Predicted_StringVar.set(f"Predicted: {cnn_predicted.item()}")
     ff_Predicted_StringVar.set(f"Predicted: {ff_predicted.item()}")
-    Percentages_Text.configure(state=NORMAL)
-    Percentages_Text.delete(1.0, END)
     output_String="\n".join(f"Digit {x}: {round(test[0][x].item(), 3)}" for x in range(10)) 
-    Percentages_Text.insert(1.0, output_String)
-    Percentages_Text.configure(state=DISABLED)
 
 def clear_canvas():
     global image1, draw
@@ -65,19 +61,19 @@ root.grid_rowconfigure(0, weight=1)
 
 ff_Predicted_StringVar = tk.StringVar(value="Predicted: Default")
 ff_Predicted_Label = ttk.Label(Feed_Forward_Frame,textvariable=ff_Predicted_StringVar, font=("Arial", 25))
+ff_Predicted_Title_Label = ttk.Label(Feed_Forward_Frame,text="Feed Forward", font=("Arial", 25))
 #Percentages_Text_StringVar = tk.StringVar(value="Default")
-ff_Percentages_Text = tk.Text(Feed_Forward_Frame, state="disabled")
 #Percentages_Text = tk.Text(CNN_Frame)
-ff_Predicted_Label.grid(column=0, row=0, sticky=(N,W,E,S))
-ff_Percentages_Text.grid(column=1, row=0, sticky=(N,W,E,S))
+ff_Predicted_Title_Label.grid(column=0, row=0, sticky=(N,W,E,S))
+ff_Predicted_Label.grid(column=0, row=1, sticky=(N,W,E,S))
 
 Predicted_StringVar = tk.StringVar(value="Predicted: Default")
 Predicted_Label = ttk.Label(CNN_Frame,textvariable=Predicted_StringVar, font=("Arial", 25))
+Predicted_Title_Label = ttk.Label(CNN_Frame,text="Convolution Network", font=("Arial", 25))
 #Percentages_Text_StringVar = tk.StringVar(value="Default")
-Percentages_Text = tk.Text(CNN_Frame, state="disabled")
 #Percentages_Text = tk.Text(CNN_Frame)
-Predicted_Label.grid(column=0, row=0, sticky=(N,W,E,S))
-Percentages_Text.grid(column=1, row=0, sticky=(N,W,E,S))
+Predicted_Title_Label.grid(column=0, row=0, sticky=(N,W,E,S))
+Predicted_Label.grid(column=0, row=1, sticky=(N,W,E,S))
 
 
 lastx, lasty = 0, 0

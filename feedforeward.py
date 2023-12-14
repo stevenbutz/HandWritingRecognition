@@ -104,13 +104,12 @@ for classname in range(10):
 
     # Calculating and printing class-wise accuracy
     class_accuracy = 100 * correct_pred[classname] / total_pred[classname]
-    print(f'Accuracy for class: {classname}     is {class_accuracy:.1f} %')
-
+    #print(f'Accuracy for class: {classname}     is {class_accuracy:.1f} %')
     # Printing precision, recall, and F1 score for each class, multiplied by 100 for percentage
-    print(f'Precision for class: {classname}     is {class_precision * 100:.1f} %')
-    print(f'Recall for class: {classname}     is {class_recall * 100:.1f} %')
-    print(f'F1 for class: {classname}     is {class_f1 * 100:.1f} %')
-    print()  # Adds a blank line for readability
-
+    #print(f'Precision for class: {classname}     is {class_precision * 100:.1f} %')
+    #print(f'Recall for class: {classname}     is {class_recall * 100:.1f} %')
+    #print(f'F1 for class: {classname}     is {class_f1 * 100:.1f} %')
+    #print()  # Adds a blank line for readability
+    print(f'{class_accuracy:.1f},{class_precision:.1f},{class_recall:.1f},{class_f1:.1f}')
 # Print overall accuracy
 print(f'Overall Accuracy of the network on the test images: {overall_accuracy:.1f}%')

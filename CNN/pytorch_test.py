@@ -189,14 +189,15 @@ def check_accuracy():
         accuracy = 100 * float(correct_count) / total_pred[classname]
         recall = 100 * float(TP[classname]) / (TP[classname] + FN[classname])
         f1 = 2 * (accuracy * recall) / (accuracy + recall)
-        print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
-        print(f'Precision for class: {classname:5s} is {precision:.1f} %')
-        print(f'Recall for class: {classname:5s} is {recall:.1f} %')
-        print(f'F1 for class: {classname:5s} is {f1:.1f} %')
-        print()
+#        print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+#        print(f'Precision for class: {classname:5s} is {precision:.1f} %')
+#        print(f'Recall for class: {classname:5s} is {recall:.1f} %')
+#        print(f'F1 for class: {classname:5s} is {f1:.1f} %')
+#        print()
+        print(f'{accuracy:.1f},{precision:.1f},{recall:.1f},{f1:.1f}')
 
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-#check_accuracy()
+check_accuracy()
 def known_digit_classification_demo():
     figure = plt.figure(figsize=(8, 8))
     cols, rows = 3, 1
