@@ -10,6 +10,7 @@ import torch.optim as optim
 import numpy as np
 from os.path import realpath
 import os.path
+import sys
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 #PATH = '/home/dan/digits_net.pth'
@@ -38,66 +39,39 @@ test_data_digits = datasets.EMNIST(
                     torchvision.transforms.ToTensor()])
 )
 
-training_data_letters = datasets.EMNIST(
-    root="data",
-    train=True,
-    split='letters',
-    download=True,
-    transform=torchvision.transforms.Compose([
-                    lambda img: torchvision.transforms.functional.rotate(img, -90),
-                    lambda img: torchvision.transforms.functional.hflip(img),
-                    torchvision.transforms.ToTensor()])
-)
 
-test_data_letters = datasets.EMNIST(
-    root="data",
-    train=False,
-    split='letters',
-    download=True,
-    transform=torchvision.transforms.Compose([
-                    lambda img: torchvision.transforms.functional.rotate(img, -90),
-                    lambda img: torchvision.transforms.functional.hflip(img),
-                    torchvision.transforms.ToTensor()])
-)
-
-train_letters_dataloader = DataLoader(training_data_letters, batch_size=64, shuffle=True)
-test_letters_dataloader = DataLoader(test_data_letters, batch_size=64, shuffle=True)
-#train_digit_dataloader = DataLoader(training_data_digits, batch_size=64, shuffle=True)
-#test_digit_dataloader = DataLoader(test_data_digits, batch_size=64, shuffle=True)
 train_digit_dataloader = DataLoader(training_data_digits, batch_size=24, shuffle=True)
 test_digit_dataloader = DataLoader(test_data_digits, batch_size=24, shuffle=True)
-
 
 class NeuralNetwork_Digits(nn.Module):
     def __init__(self):
         super().__init__()
-        #input images are 28*28 and have only 1 channel
+        #input images are 28*28 pixels and have only 1 color channel
         self.digits_model = nn.Sequential(
-            #takes a one channel image (gray) and runs 12 different 3x3 learnable kernals to create 6 28*28 feature maps
-            #original: nn.Conv2d(1,12,3,padding=1),
+            #takes a one channel image (gray) and runs 6 different 3x3 learnable kernals to create 6 28*28 feature maps
             nn.Conv2d(1,6,3,padding=1),
             #the ReLU activation function helps with non-linearity
             nn.ReLU(),
             #the max pooling reduces the height and width of our feature maps to save computation time and memory
-            #our pooling layer has a kernal of 2*2 which should reduce  our feature maps to 14*14*12
+            #our pooling layer has a kernal of 2*2 which should reduce  our feature maps to 14*14*6
             nn.MaxPool2d(2,2),
             
-            #takes our 12 dimensional feature map from the max pooling layer and creates a new 14*14*24 feature map 
-            #Ask about the dimensional converstions of convolutions
-            #original: nn.Conv2d(12,24,3, padding=1),
+            #takes our 6 14*14 feature maps from the max pooling layer and creates a new 12 14*14 feature maps
             nn.Conv2d(6,12,3, padding=1),
             #the ReLU activation function helps with non-linearity
             nn.ReLU(),
             #the max pooling reduces the height and width of our feature maps to save computation time and memory
-            #this pooling layer has a kernal of 2*2 which should reduce  our feature maps to 7*7*24
+            #this pooling layer has a kernal of 2*2 which should reduce  our feature maps to 7*7*12
             nn.MaxPool2d(2,2),
 
             #reduces our 3d feature map to a single dimesion to feed into the linear network
             nn.Flatten(),
 
-            #nn.Linear(64*600, 512),
+            #standard feed forward neural network used to classify the ouput of the convolution and pooling layers
             nn.Linear(7*7*12, 120),
+            #the ReLU activation function helps with non-linearity
             nn.ReLU(),
+            #final layer in the network with 10 ouput nodes that represent the 10 possible classification digits
             nn.Linear(120, 10),
         )
 
@@ -105,9 +79,11 @@ class NeuralNetwork_Digits(nn.Module):
         return self.digits_model(x)
 
 net = NeuralNetwork_Digits()
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+
+#function used to train the CNN
 def train():
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     global MODEL_PATH
     for epoch in range(2):  # loop over the dataset multiple times
 
@@ -134,26 +110,25 @@ def train():
 
     print('Finished Training') 
     torch.save(net.state_dict(), MODEL_PATH)
-#train()
-#dataiter = iter(test_digit_dataloader)
-#images, labels = next(dataiter)
 
-# print images
-#imshow(torchvision.utils.make_grid(images))
-#print('GroundTruth: ', ' '.join(f'{labels[j]}' for j in range(4)))
-
-#img, label = training_data_digits[0]
-#figure2 = plt.figure(figsize=(8, 8))
-#plt.title(label)
-#plt.imshow(img.squeeze(), cmap="gray")
-#plt.show()
-net = NeuralNetwork_Digits()
-net.load_state_dict(torch.load(MODEL_PATH))
+try:
+    net.load_state_dict(torch.load(MODEL_PATH))
+except IOError:
+    print("Could not find saved network file. Would you like to train the network?")
+    answer=input("Enter y for Yes or n for No")
+    if answer=="y":
+        train()
+    elif answer=="n":
+        raise Exception("Can't run without trained network. Exiting program.")
+    else:
+        raise Exception("Can't read answer. Exiting program.")
 
 dataiter = iter(test_digit_dataloader)
 images, labels = next(dataiter)
+
 # since we're not training, we don't need to calculate the gradients for our outputs
 def check_accuracy():
+    print("Checking accuracy of CNN.")
     TP = {str(i): 0 for i in range(10)}
     FP = {str(i): 0 for i in range(10)}
     TN= {str(i): 0 for i in range(10)}
@@ -189,26 +164,69 @@ def check_accuracy():
         accuracy = 100 * float(correct_count) / total_pred[classname]
         recall = 100 * float(TP[classname]) / (TP[classname] + FN[classname])
         f1 = 2 * (accuracy * recall) / (accuracy + recall)
-#        print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
-#        print(f'Precision for class: {classname:5s} is {precision:.1f} %')
-#        print(f'Recall for class: {classname:5s} is {recall:.1f} %')
-#        print(f'F1 for class: {classname:5s} is {f1:.1f} %')
-#        print()
-        print(f'{accuracy:.1f},{precision:.1f},{recall:.1f},{f1:.1f}')
+        print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+        print(f'Precision for class: {classname:5s} is {precision:.1f} %')
+        print(f'Recall for class: {classname:5s} is {recall:.1f} %')
+        print(f'F1 for class: {classname:5s} is {f1:.1f} %')
+        print()
+        #print(f'{accuracy:.1f},{precision:.1f},{recall:.1f},{f1:.1f}')
 
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-check_accuracy()
+
+
 def known_digit_classification_demo():
     figure = plt.figure(figsize=(8, 8))
-    cols, rows = 3, 1
-    for i in range(1, cols * rows + 1):
-        sample_idx = torch.randint(len(test_data_letters), size=(1,)).item()
-        img, label = test_data_digits[sample_idx]
-        output = net(img.unsqueeze(1))
-        _, predicted = torch.max(output, 1)
-        figure.add_subplot(rows, cols, i)
-        plt.title(f"{label}: {predicted}")
-        plt.axis("off")
-        plt.imshow(img.squeeze(), cmap="gray")
+    def on_press(event):
+        sys.stdout.flush()
+        if event.key == 'enter':
+            for i in figure.get_axes():
+                figure.delaxes(i)
+            build()
+            plt.draw()
+        if event.key == 'escape':
+            plt.close()
+    def build():
+        cols, rows = 3, 3
+        for i in range(1, cols * rows + 1):
+            sample_idx = torch.randint(len(test_data_digits), size=(1,)).item()
+            img, label = test_data_digits[sample_idx]
+            output = net(img.unsqueeze(1))
+            _, predicted = torch.max(output, 1)
+            predicted_value=predicted.item()
+            figure.add_subplot(rows, cols, i)
+            if label==predicted_value:
+                plt.rcParams["axes.titlecolor"]="green"
+            else:
+                plt.rcParams["axes.titlecolor"]="red"
+            plt.title(f"Known Label:{label}\nPredicted Label:{predicted_value}")
+            plt.axis("off")
+            plt.imshow(img.squeeze(), cmap="gray")
+    build()
+    figure.tight_layout(h_pad=2)
+    figure.canvas.mpl_connect('key_press_event', on_press)
     plt.show()
-#known_digit_classification_demo()
+
+if __name__=="__main__":
+    print("Train Data? y/n")
+    t=input()
+    if t=='y':
+        print("Training Data")
+        train()
+    else:
+        print("Skipping Training")
+
+    print("Check Accuracy? y/n")
+    t=input()
+    if t=='y':
+        print("Checking Accuracy")
+        check_accuracy()
+    else:
+        print("Skipping Accuracy Check")
+    print("Run Known Digit Classification Demo? y/n")
+    t=input()
+    if t=='y':
+        print("Running Known Digit Classification Demo")
+        known_digit_classification_demo()
+    else:
+        print("Skipping Known Digit Classification Demo")
+

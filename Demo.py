@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import *
 from PIL import Image, ImageDraw
-from CNN import pytorch_test
+from CNN import CNN_Network
 from torchvision import transforms
 import torch
 import os.path
