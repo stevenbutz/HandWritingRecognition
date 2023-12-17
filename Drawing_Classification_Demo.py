@@ -1,0 +1,90 @@
+import tkinter as tk
+from tkinter import ttk
+from tkinter import *
+from PIL import Image, ImageDraw
+from torchvision import transforms
+import torch
+import CNN_Network
+import feedforeward
+
+image1 = Image.new("L", (28, 28))
+draw = ImageDraw.Draw(image1)
+
+class Image_Classifier_Demo:
+    def __init__(self, cnn_model, ff_model):
+        cnn_model = cnn_model
+        ff_model= ff_model
+        root = Tk()
+        CNN_Frame = ttk.Frame(root)
+        Feed_Forward_Frame = ttk.Frame(root)
+        Canvas_Frame = ttk.Frame(root)
+        canvas_scale_size=20
+
+
+        def classify_digit():
+            image_tensor = transforms.functional.pil_to_tensor(image1).float()
+            cnn_output = cnn_model(image_tensor.unsqueeze(1))
+            ff_output = ff_model(image_tensor.unsqueeze(1))
+            _, cnn_predicted = torch.max(cnn_output, 1)
+            _, ff_predicted = torch.max(ff_output, 1)
+            Predicted_StringVar.set(f"Predicted: {cnn_predicted.item()}")
+            ff_Predicted_StringVar.set(f"Predicted: {ff_predicted.item()}")
+
+        def clear_canvas():
+            global image1, draw
+            del image1
+            del draw
+            canvas.delete("all")
+            image1 = Image.new("L", (28, 28))
+            draw = ImageDraw.Draw(image1)
+
+
+        canvas = Canvas(Canvas_Frame, width=canvas_scale_size*28, height=canvas_scale_size*28, background="black")
+        Classify_Button = ttk.Button(Canvas_Frame,text="Classify", command=classify_digit)
+        Clear_Canvas_Button = ttk.Button(Canvas_Frame,text="Clear", command=clear_canvas)
+
+        CNN_Frame.grid(column=0, row=0, sticky=(N,W,E,S))
+        Feed_Forward_Frame.grid(column=1, row=0, sticky=(N,W,E,S))
+        Canvas_Frame.grid(column=0, row=1, columnspan=2, sticky=(N,W,E,S))
+
+        canvas.grid(column=0, row=0, columnspan=2, sticky=(N,W,E,S))
+        Classify_Button.grid(column=0, row=1, sticky=(N,W,E,S))
+        Clear_Canvas_Button.grid(column=1, row=1, sticky=(N,W,E,S))
+
+        root.grid_columnconfigure(0, weight=1)
+        root.grid_rowconfigure(0, weight=1)
+
+        ff_Predicted_StringVar = tk.StringVar(value="Predicted: Default")
+        ff_Predicted_Label = ttk.Label(Feed_Forward_Frame,textvariable=ff_Predicted_StringVar, font=("Arial", 25))
+        ff_Predicted_Title_Label = ttk.Label(Feed_Forward_Frame,text="Feed Forward", font=("Arial", 25))
+        ff_Predicted_Title_Label.grid(column=0, row=0, sticky=(N,W,E,S))
+        ff_Predicted_Label.grid(column=0, row=1, sticky=(N,W,E,S))
+
+        Predicted_StringVar = tk.StringVar(value="Predicted: Default")
+        Predicted_Label = ttk.Label(CNN_Frame,textvariable=Predicted_StringVar, font=("Arial", 25))
+        Predicted_Title_Label = ttk.Label(CNN_Frame,text="Convolution Network", font=("Arial", 25))
+        Predicted_Title_Label.grid(column=0, row=0, sticky=(N,W,E,S))
+        Predicted_Label.grid(column=0, row=1, sticky=(N,W,E,S))
+
+
+        def xy(event):
+            global lastx, lasty
+            lastx, lasty = canvas.canvasx(event.x), canvas.canvasy(event.y)
+
+
+        def FillPixle(event):
+            global lastx, lasty
+            x, y = canvas.canvasx(event.x), canvas.canvasy(event.y)
+            x_canvas_location=(x//canvas_scale_size)*canvas_scale_size
+            y_canvas_location=(y//canvas_scale_size)*canvas_scale_size
+            canvas.create_rectangle((x_canvas_location, y_canvas_location, x_canvas_location+canvas_scale_size,y_canvas_location+canvas_scale_size), fill="white",)
+            x_pixel=x//canvas_scale_size
+            y_pixel=y//canvas_scale_size
+            draw.rectangle([x_pixel,y_pixel,x_pixel+1,y_pixel+1], 128)
+            lastx, lasty = x, y
+
+        canvas.bind("<Button-1>", xy)
+        canvas.bind("<B1-Motion>", FillPixle)
+
+
+        root.mainloop()
