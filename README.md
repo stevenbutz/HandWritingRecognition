@@ -11,7 +11,7 @@ To run the program, call 'python3 Main.py' in the root directory.
 
 Main.py: Main file used to run the project
 Metric_Calculations.py: Used to calculate metrics for the networks
-Testing_Sample_Classification_Demo.py: Contains code for sample classification demo of the testing data.
+Testing_Sample_Classification_Demo.py: Contains code for sample classification demo of the testing data. press enter to see more images.
 feedforeward.py: contains the feed foreward network algorith and the training code.
 CNN_Network.py: contains the cnn network algorith and the training code.
 Drawing_Classification_Demo.py: contains the code for the demo where you can draw your own images.
